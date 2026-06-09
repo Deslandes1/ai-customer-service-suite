@@ -52,6 +52,8 @@ st.markdown("""
         text-align: center;
         color: #00ebc7;
         font-weight: bold;
+        font-family: monospace;
+        word-break: break-all;
     }
     .chat-message {
         background: rgba(255,255,255,0.1);
@@ -181,7 +183,7 @@ def get_ai_response(question, guidelines, lang):
     system_prompt = f"""You are an AI customer service agent for a company. Answer the customer's question based ONLY on the following company guidelines. Be polite, helpful, and concise. If the question cannot be answered from the guidelines, say "I cannot find that information in our guidelines. Please contact a human agent." Respond in {lang}.
 
 Guidelines:
-{guidelines[:4000]}  # Limit to 4000 chars for token efficiency
+{guidelines[:4000]}
 
 Customer question: {question}
 
@@ -199,7 +201,7 @@ Answer:"""
     except Exception as e:
         return f"AI error: {str(e)}"
 
-# ========== TEXT TO SPEECH (female voice) ==========
+# ========== TEXT TO SPEECH ==========
 async def text_to_speech(text, voice, output_path):
     comm = edge_tts.Communicate(text, voice)
     await comm.save(output_path)
@@ -243,8 +245,8 @@ with st.sidebar:
     texts = TEXTS[st.session_state.lang]
     
     st.markdown("---")
-    st.markdown(f"### 🛡️ {texts['security_badge']}")
-    st.markdown('<div class="security-badge">🔐 End‑to‑end encryption active</div>', unsafe_allow_html=True)
+    st.markdown(f"### 🛡️ Global Security Shield")
+    st.markdown(f'<div class="security-badge">🔐 API Key: shVAPTtDooFeI9adf2OLHoI1-5y8pVew7fzn0mkcOrM</div>', unsafe_allow_html=True)
     st.markdown("---")
     
     st.subheader(texts["sidebar_title"])
@@ -295,7 +297,6 @@ if "GROQ_API_KEY" not in st.secrets:
 else:
     st.subheader(texts["customer_chat"])
     
-    # Chat simulation
     with st.form("customer_form"):
         customer_name = st.text_input(texts["customer_name"], value="Jane Doe")
         customer_email = st.text_input(texts["customer_email"], value="jane@example.com")
@@ -311,11 +312,9 @@ else:
             st.markdown(f"**{texts['ai_response']}**")
             st.markdown(f'<div class="chat-message">{response}</div>', unsafe_allow_html=True)
             
-            # Optional: simulate email sending (for demo)
             if customer_email:
                 st.info(f"📧 A copy of this response would be sent to {customer_email}")
 
-# Note about voice call integration
 st.markdown("---")
 st.markdown("### 📞 Voice & WhatsApp Call Integration")
 st.markdown("""
