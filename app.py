@@ -89,7 +89,7 @@ TEXTS = {
         "send_text": "Send (Simulate Text/Email)",
         "ai_response": "🤖 AI Response",
         "footer": "© 2026 GlobalInternet.py – AI Customer Service Suite",
-        "security_badge": "🔐 End‑to‑end encryption active",
+        "security_badge": "🔐 Secure API connection active",
         "lang": "Language",
         "guidelines_summary": "Guidelines Summary (first 500 chars):"
     },
@@ -116,7 +116,7 @@ TEXTS = {
         "send_text": "Envoyer (simuler texte/email)",
         "ai_response": "🤖 Réponse IA",
         "footer": "© 2026 GlobalInternet.py – Suite service client IA",
-        "security_badge": "🔐 Chiffrement de bout en bout actif",
+        "security_badge": "🔐 Connexion API sécurisée active",
         "lang": "Langue",
         "guidelines_summary": "Résumé des politiques (500 premiers caractères) :"
     },
@@ -143,17 +143,30 @@ TEXTS = {
         "send_text": "Enviar (simular texto/email)",
         "ai_response": "🤖 Respuesta IA",
         "footer": "© 2026 GlobalInternet.py – Suite servicio al cliente IA",
-        "security_badge": "🔐 Cifrado de extremo a extremo activo",
+        "security_badge": "🔐 Conexión API segura activa",
         "lang": "Idioma",
         "guidelines_summary": "Resumen de políticas (primeros 500 caracteres):"
     }
 }
 
-# ========== VOICE MAPPING (female) ==========
-VOICE_MAP = {
+# ========== VOICE MAPPINGS ==========
+FEMALE_VOICE_MAP = {
     "English": "en-US-JennyNeural",
     "French": "fr-FR-DeniseNeural",
     "Spanish": "es-ES-ElviraNeural"
+}
+
+MALE_VOICE_MAP = {
+    "English": "en-US-ChristopherNeural",
+    "French": "fr-FR-HenriNeural",
+    "Spanish": "es-ES-AlvaroNeural"
+}
+
+# ========== MALE VOICE INTRO TEXT (concise for social media) ==========
+MALE_INTRO_TEXT = {
+    "English": "Hello, this is Gesner Deslandes from GlobalInternet.py. The AI Customer Service Suite automates customer support using your company guidelines. It answers text messages, emails, and phone calls in English, French, or Spanish. You can connect your phone via Twilio for WhatsApp and voice. Full source code is available. Small Business License 499 dollars. Agency License 1499 dollars. White‑Label License 2999 dollars. Contact us at (509) 4738 5663 or deslandes78@gmail.com. Visit GlobalInternet.py to purchase.",
+    "French": "Bonjour, ici Gesner Deslandes de GlobalInternet.py. La Suite de service client IA automatise le support client avec vos propres politiques. Elle répond par SMS, email et appel en anglais, français ou espagnol. Connectez votre numéro via Twilio pour WhatsApp et la voix. Code source disponible. Licence petite entreprise 499 dollars. Licence agence 1499 dollars. Licence marque blanche 2999 dollars. Contactez‑nous au (509) 4738 5663 ou à deslandes78@gmail.com. Visitez GlobalInternet.py pour acheter.",
+    "Spanish": "Hola, soy Gesner Deslandes de GlobalInternet.py. La Suite de servicio al cliente IA automatiza el soporte usando sus políticas. Responde mensajes, correos y llamadas en inglés, francés o español. Conecte su número vía Twilio para WhatsApp y voz. Código fuente disponible. Licencia pequeña empresa 499 dólares. Licencia agencia 1499 dólares. Licencia marca blanca 2999 dólares. Contáctenos al (509) 4738 5663 o a deslandes78@gmail.com. Visite GlobalInternet.py para comprar."
 }
 
 # ========== EXTRACT TEXT FROM UPLOADED FILE ==========
@@ -206,8 +219,11 @@ async def text_to_speech(text, voice, output_path):
     comm = edge_tts.Communicate(text, voice)
     await comm.save(output_path)
 
-def generate_audio(text, lang):
-    voice = VOICE_MAP.get(lang, "en-US-JennyNeural")
+def generate_audio(text, lang, voice_type="female"):
+    if voice_type == "male":
+        voice = MALE_VOICE_MAP.get(lang, "en-US-ChristopherNeural")
+    else:
+        voice = FEMALE_VOICE_MAP.get(lang, "en-US-JennyNeural")
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
         tmp_path = tmp.name
     loop = asyncio.new_event_loop()
@@ -246,7 +262,18 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown(f"### 🛡️ Global Security Shield")
-    st.markdown(f'<div class="security-badge">🔐 API Key: shVAPTtDooFeI9adf2OLHoI1-5y8pVew7fzn0mkcOrM</div>', unsafe_allow_html=True)
+    # SECURITY: No API key visible – only a generic message
+    st.markdown(f'<div class="security-badge">{texts["security_badge"]}</div>', unsafe_allow_html=True)
+    st.markdown("---")
+    
+    # ----- Male Voice Button for Social Media -----
+    st.markdown("### 🎙️ AI Voice for Social Media")
+    male_btn = st.button("🎙️ AI Male Voice – Describe Software for Social Media", use_container_width=True)
+    if male_btn:
+        with st.spinner("Generating male voice description..."):
+            audio_bytes = generate_audio(MALE_INTRO_TEXT[st.session_state.lang], st.session_state.lang, voice_type="male")
+            st.audio(audio_bytes, format="audio/mp3")
+            st.success("Male voice description played. You can share this audio on social media.")
     st.markdown("---")
     
     st.subheader(texts["sidebar_title"])
@@ -282,16 +309,16 @@ with st.sidebar:
 # ========== MAIN PAGE ==========
 st.markdown(f'<div class="main-title"><h1>{texts["title"]}</h1><p>{texts["subtitle"]}</p></div>', unsafe_allow_html=True)
 
-# AI Voice Introduction
+# AI Voice Introduction (Female)
 if st.button(texts["intro_btn"], use_container_width=True):
     with st.spinner("Generating voice introduction..."):
-        audio = generate_audio(texts["intro_text"], st.session_state.lang)
+        audio = generate_audio(texts["intro_text"], st.session_state.lang, voice_type="female")
         st.audio(audio, format="audio/mp3")
         st.success("Introduction played. You can listen again if needed.")
 
 st.markdown("---")
 
-# Check for Groq API key
+# Check for Groq API key in secrets
 if "GROQ_API_KEY" not in st.secrets:
     st.error(texts["api_key_warning"])
 else:
