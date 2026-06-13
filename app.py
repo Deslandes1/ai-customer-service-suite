@@ -13,7 +13,8 @@ import docx
 st.set_page_config(
     page_title="AI Customer Service Suite | GlobalInternet.py",
     page_icon="🤖",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # ========== CUSTOM CSS ==========
@@ -26,12 +27,23 @@ st.markdown("""
     .main-title {
         text-align: center;
         margin-bottom: 1rem;
+        position: relative;
     }
     .main-title h1 {
         color: #ffd966;
     }
     .main-title p {
         color: #a0b0c0;
+    }
+    .profile-pic {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #ffd966;
     }
     .stButton>button {
         background-color: #e94560;
@@ -307,7 +319,11 @@ with st.sidebar:
     st.caption(texts["footer"])
 
 # ========== MAIN PAGE ==========
-st.markdown(f'<div class="main-title"><h1>{texts["title"]}</h1><p>{texts["subtitle"]}</p></div>', unsafe_allow_html=True)
+profile_col, title_col = st.columns([1, 9])
+with profile_col:
+    st.image("https://raw.githubusercontent.com/Deslandes1/ai-customer-service-suite/main/Gesner%20Deslandes.png", width=70)
+with title_col:
+    st.markdown(f'<div class="main-title"><h1>{texts["title"]}</h1><p>{texts["subtitle"]}</p></div>', unsafe_allow_html=True)
 
 # AI Voice Introduction (Female)
 if st.button(texts["intro_btn"], use_container_width=True):
