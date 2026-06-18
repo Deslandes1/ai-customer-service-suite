@@ -175,6 +175,13 @@ st.markdown("""
         font-family: monospace;
         font-size: 0.9rem;
     }
+    .warning-box {
+        background: rgba(255, 193, 7, 0.15);
+        border-left: 4px solid #ffc107;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin: 10px 0;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -190,10 +197,11 @@ TEXTS = {
         "no_guidelines": "⚠️ Guidelines are pre‑loaded. No need to upload.",
         "api_key_warning": "⚠️ Missing Groq API key. Add GROQ_API_KEY to Streamlit secrets.",
         "twilio_info": "📞 Phone/WhatsApp Integration (Twilio Required)",
+        "twilio_notice": "⚠️ To use voice and WhatsApp features, you must sign up for a Twilio account and purchase a phone number from them. Twilio charges a monthly fee for the number and per‑minute/per‑message usage. Fill in the fields below with the credentials and number Twilio provides you.",
         "twilio_instruction": "To connect your phone number for voice and WhatsApp, configure Twilio webhook to point to: https://your-app.streamlit.app/webhook . This demo includes a test chat interface below.",
         "twilio_sid": "Twilio Account SID (optional for demo)",
         "twilio_auth": "Twilio Auth Token (optional for demo)",
-        "twilio_phone": "Your Twilio Phone Number",
+        "twilio_phone": "Your Twilio Phone Number (must be purchased from Twilio)",
         "save_twilio": "Save Twilio Settings",
         "customer_chat": "💬 Customer Chat (Text / Email Simulation)",
         "customer_name": "Customer Name",
@@ -227,10 +235,11 @@ TEXTS = {
         "no_guidelines": "⚠️ Les politiques sont pré‑chargées. Pas besoin de télécharger.",
         "api_key_warning": "⚠️ Clé Groq API manquante. Ajoutez GROQ_API_KEY aux secrets Streamlit.",
         "twilio_info": "📞 Intégration téléphone/WhatsApp (Twilio requis)",
+        "twilio_notice": "⚠️ Pour utiliser les fonctionnalités vocales et WhatsApp, vous devez vous inscrire à un compte Twilio et acheter un numéro de téléphone auprès d'eux. Twilio facture des frais mensuels pour le numéro et des frais à la minute/au message. Remplissez les champs ci‑dessous avec les identifiants et le numéro fournis par Twilio.",
         "twilio_instruction": "Pour connecter votre numéro pour les appels vocaux et WhatsApp, configurez le webhook Twilio vers : https://votre-app.streamlit.app/webhook . Cette démo inclut une interface de chat de test ci‑dessous.",
         "twilio_sid": "Twilio Account SID (optionnel pour la démo)",
         "twilio_auth": "Twilio Auth Token (optionnel pour la démo)",
-        "twilio_phone": "Votre numéro Twilio",
+        "twilio_phone": "Votre numéro Twilio (doit être acheté auprès de Twilio)",
         "save_twilio": "Enregistrer les paramètres Twilio",
         "customer_chat": "💬 Chat client (simulation texte/email)",
         "customer_name": "Nom du client",
@@ -264,10 +273,11 @@ TEXTS = {
         "no_guidelines": "⚠️ Las políticas están pre‑cargadas. No es necesario subir archivos.",
         "api_key_warning": "⚠️ Falta la clave de Groq API. Agregue GROQ_API_KEY a los secretos de Streamlit.",
         "twilio_info": "📞 Integración telefónica/WhatsApp (requiere Twilio)",
+        "twilio_notice": "⚠️ Para usar las funciones de voz y WhatsApp, debe registrarse en Twilio y comprar un número de teléfono. Twilio cobra una tarifa mensual por el número y un costo por minuto/mensaje. Complete los campos a continuación con las credenciales y el número que Twilio le proporcione.",
         "twilio_instruction": "Para conectar su número para llamadas de voz y WhatsApp, configure el webhook de Twilio apuntando a: https://su-app.streamlit.app/webhook . Esta demo incluye una interfaz de chat de prueba a continuación.",
         "twilio_sid": "Twilio Account SID (opcional para la demo)",
         "twilio_auth": "Twilio Auth Token (opcional para la demo)",
-        "twilio_phone": "Su número de Twilio",
+        "twilio_phone": "Su número de Twilio (debe comprarlo en Twilio)",
         "save_twilio": "Guardar configuración de Twilio",
         "customer_chat": "💬 Chat con cliente (simulación texto/email)",
         "customer_name": "Nombre del cliente",
@@ -306,11 +316,11 @@ MALE_VOICE_MAP = {
     "Spanish": "es-ES-AlvaroNeural"
 }
 
-# ========== MALE VOICE INTRO TEXT ==========
+# ========== UPDATED MALE VOICE INTRO TEXT ==========
 MALE_INTRO_TEXT = {
-    "English": "Hello, this is Gesner Deslandes from GlobalInternet.py. The AI Customer Service Suite automates customer support using your company guidelines. It answers text messages, emails, and phone calls in English, French, or Spanish. You can connect your phone via Twilio for WhatsApp and voice. Full source code is available. Small Business License 499 dollars. Agency License 1499 dollars. White‑Label License 2999 dollars. Contact us at (509) 4738 5663 or deslandes78@gmail.com. Visit GlobalInternet.py to purchase.",
-    "French": "Bonjour, ici Gesner Deslandes de GlobalInternet.py. La Suite de service client IA automatise le support client avec vos propres politiques. Elle répond par SMS, email et appel en anglais, français ou espagnol. Connectez votre numéro via Twilio pour WhatsApp et la voix. Code source disponible. Licence petite entreprise 499 dollars. Licence agence 1499 dollars. Licence marque blanche 2999 dollars. Contactez‑nous au (509) 4738 5663 ou à deslandes78@gmail.com. Visitez GlobalInternet.py pour acheter.",
-    "Spanish": "Hola, soy Gesner Deslandes de GlobalInternet.py. La Suite de servicio al cliente IA automatiza el soporte usando sus políticas. Responde mensajes, correos y llamadas en inglés, francés o español. Conecte su número vía Twilio para WhatsApp y voz. Código fuente disponible. Licencia pequeña empresa 499 dólares. Licencia agencia 1499 dólares. Licencia marca blanca 2999 dólares. Contáctenos al (509) 4738 5663 o a deslandes78@gmail.com. Visite GlobalInternet.py para comprar."
+    "English": "Hello, this is Gesner Deslandes from GlobalInternet.py. The AI Customer Service Suite automates customer support using your company guidelines. It answers text messages, emails, and phone calls in English, French, or Spanish. You can connect your phone via Twilio for WhatsApp and voice. For email, the app replies to up to one hundred emails per day using a free Gmail account. If you need to send more, you can wait twenty‑four hours for the limit to reset or upgrade to Google Workspace to send up to two thousand emails per day. Full source code is available. Small Business License 499 dollars. Agency License 1499 dollars. White‑Label License 2999 dollars. Contact us at (509) 4738 5663 or deslandes78@gmail.com. Visit GlobalInternet.py to purchase.",
+    "French": "Bonjour, ici Gesner Deslandes de GlobalInternet.py. La Suite de service client IA automatise le support client avec vos propres politiques. Elle répond par SMS, email et appel en anglais, français ou espagnol. Connectez votre numéro via Twilio pour WhatsApp et la voix. Pour les emails, l'application répond jusqu'à cent emails par jour avec un compte Gmail gratuit. Si vous devez en envoyer plus, vous pouvez attendre vingt‑quatre heures pour que la limite se réinitialise ou passer à Google Workspace pour envoyer jusqu'à deux mille emails par jour. Code source disponible. Licence petite entreprise 499 dollars. Licence agence 1499 dollars. Licence marque blanche 2999 dollars. Contactez‑nous au (509) 4738 5663 ou à deslandes78@gmail.com. Visitez GlobalInternet.py pour acheter.",
+    "Spanish": "Hola, soy Gesner Deslandes de GlobalInternet.py. La Suite de servicio al cliente IA automatiza el soporte usando sus políticas. Responde mensajes, correos y llamadas en inglés, francés o español. Conecte su número vía Twilio para WhatsApp y voz. Para el correo electrónico, la aplicación responde hasta cien correos al día con una cuenta de Gmail gratuita. Si necesita enviar más, puede esperar veinticuatro horas para que se reinicie el límite o actualizar a Google Workspace para enviar hasta dos mil correos al día. Código fuente disponible. Licencia pequeña empresa 499 dólares. Licencia agencia 1499 dólares. Licencia marca blanca 2999 dólares. Contáctenos al (509) 4738 5663 o a deslandes78@gmail.com. Visite GlobalInternet.py para comprar."
 }
 
 # ========== EXTRACT TEXT FROM UPLOADED FILE (kept for reference, but not used) ==========
@@ -553,6 +563,7 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown(f"### {texts['twilio_info']}")
+    st.markdown(f'<div class="warning-box">{texts["twilio_notice"]}</div>', unsafe_allow_html=True)
     st.info(texts["twilio_instruction"])
     twilio_sid = st.text_input(texts["twilio_sid"], value=st.session_state.twilio_sid)
     twilio_auth = st.text_input(texts["twilio_auth"], type="password", value=st.session_state.twilio_auth)
