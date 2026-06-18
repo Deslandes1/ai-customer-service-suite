@@ -13,6 +13,7 @@ from groq import Groq
 import edge_tts
 import PyPDF2
 import docx
+import concurrent.futures
 
 # ============================================================================
 # EMBEDDED COMPANY GUIDELINES (GlobalInternet.py)
@@ -330,8 +331,9 @@ def extract_text_from_file(uploaded_file):
     else:
         return ""
 
-# ========== AI RESPONSE FUNCTION ==========
-def get_ai_response(question, guidelines, lang):
+# ========== AI RESPONSE FUNCTION WITH TIMEOUT ==========
+def get_ai_response(question, guidelines, lang, timeout=15):
+    """Get AI response with a timeout."""
     if not guidelines:
         return "Please upload your company guidelines first. / Veuillez d'abord télécharger vos politiques. / Por favor, cargue primero sus políticas."
     
@@ -349,14 +351,20 @@ Customer question: {question}
 Answer:"""
     
     try:
-        client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[{"role": "user", "content": system_prompt}],
-            temperature=0.3,
-            max_tokens=500
-        )
-        return response.choices[0].message.content.strip()
+        # Use a ThreadPoolExecutor to enforce timeout
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(
+                lambda: Groq(api_key=st.secrets["GROQ_API_KEY"]).chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[{"role": "user", "content": system_prompt}],
+                    temperature=0.3,
+                    max_tokens=500
+                )
+            )
+            result = future.result(timeout=timeout)
+            return result.choices[0].message.content.strip()
+    except concurrent.futures.TimeoutError:
+        return "⏳ AI response timed out. Please try again or contact support."
     except Exception as e:
         return f"AI error: {str(e)}"
 
@@ -402,6 +410,7 @@ def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", s
     """
     Connect to Gmail, fetch unread emails, generate AI replies, and send them.
     Uses the app password stored in st.secrets["EMAIL_PASSWORD"] (flat key).
+    Processes a maximum of 10 emails per click to avoid hanging.
     """
     log = []
     try:
@@ -418,44 +427,63 @@ def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", s
         
         email_ids = messages[0].split()
         if not email_ids:
+            imap.close()
+            imap.logout()
             return [], "No unread emails found."
+        
+        # Limit to first 10 emails to prevent timeout
+        email_ids = email_ids[:10]
         
         processed_count = 0
         replied_to = []
         
-        for eid in email_ids:
-            status, msg_data = imap.fetch(eid, "(RFC822)")
-            if status != "OK":
-                continue
-            raw_email = msg_data[0][1]
-            msg = email.message_from_bytes(raw_email)
-            
-            subject = msg.get("Subject", "No Subject")
-            from_addr = msg.get("From")
-            body = get_email_body(msg)
-            
-            reply_text = get_ai_response(body, guidelines, lang)
-            
-            smtp = smtplib.SMTP_SSL(smtp_server, 465)
-            smtp.login(gmail_user, gmail_password)
-            
-            reply_msg = MIMEMultipart()
-            reply_msg["From"] = gmail_user
-            reply_msg["To"] = from_addr
-            reply_msg["Subject"] = f"Re: {subject}"
-            reply_msg.attach(MIMEText(reply_text, "plain", "utf-8"))
-            
-            smtp.send_message(reply_msg)
-            smtp.quit()
-            
-            processed_count += 1
-            replied_to.append(from_addr)
-            log.append(f"Replied to {from_addr} about '{subject}'")
+        # Use st.progress to show progress
+        progress_bar = st.progress(0, text="Processing emails...")
+        total = len(email_ids)
         
+        for idx, eid in enumerate(email_ids):
+            progress_bar.progress((idx + 1) / total, text=f"Processing email {idx+1}/{total}")
+            try:
+                status, msg_data = imap.fetch(eid, "(RFC822)")
+                if status != "OK":
+                    continue
+                raw_email = msg_data[0][1]
+                msg = email.message_from_bytes(raw_email)
+                
+                subject = msg.get("Subject", "No Subject")
+                from_addr = msg.get("From")
+                body = get_email_body(msg)
+                
+                # Get AI reply with timeout (15 seconds)
+                reply_text = get_ai_response(body, guidelines, lang, timeout=15)
+                
+                smtp = smtplib.SMTP_SSL(smtp_server, 465)
+                smtp.login(gmail_user, gmail_password)
+                
+                reply_msg = MIMEMultipart()
+                reply_msg["From"] = gmail_user
+                reply_msg["To"] = from_addr
+                reply_msg["Subject"] = f"Re: {subject}"
+                reply_msg.attach(MIMEText(reply_text, "plain", "utf-8"))
+                
+                smtp.send_message(reply_msg)
+                smtp.quit()
+                
+                processed_count += 1
+                replied_to.append(from_addr)
+                log.append(f"Replied to {from_addr} about '{subject}'")
+            except Exception as e:
+                log.append(f"❌ Failed to process email {eid}: {str(e)}")
+        
+        progress_bar.progress(1.0, text="Done!")
         imap.close()
         imap.logout()
         
-        return log, f"Processed {processed_count} emails. Replied to: {', '.join(replied_to)}"
+        if processed_count == 0 and not log:
+            return [], "No unread emails found."
+        
+        result_msg = f"Processed {processed_count} emails. Replies sent to: {', '.join(replied_to)}"
+        return log, result_msg
     
     except Exception as e:
         return log, f"Error: {str(e)}"
@@ -616,7 +644,8 @@ if process_btn:
         elif "No unread" in result:
             st.info(texts["email_no_unread"])
         else:
-            st.success(texts["email_processed"].format(len(log), ", ".join([entry.split(" ")[2] for entry in log])))
+            # Show success message with details
+            st.success(result)
             st.session_state.email_log = log
             st.balloons()
 
