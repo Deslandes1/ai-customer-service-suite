@@ -381,7 +381,7 @@ def generate_audio(text, lang, voice_type="female"):
     os.unlink(tmp_path)
     return audio_bytes
 
-# ========== EMAIL AUTO‑REPLY FUNCTIONS (using secrets) ==========
+# ========== EMAIL AUTO‑REPLY FUNCTIONS (using flat secret) ==========
 def get_email_body(msg):
     """Extract plain text body from an email message."""
     if msg.is_multipart():
@@ -393,7 +393,6 @@ def get_email_body(msg):
         for part in msg.walk():
             if part.get_content_type() == "text/html":
                 html = part.get_payload(decode=True).decode("utf-8", errors="ignore")
-                import re
                 return re.sub(r'<[^>]+>', '', html)
     else:
         return msg.get_payload(decode=True).decode("utf-8", errors="ignore")
@@ -402,12 +401,12 @@ def get_email_body(msg):
 def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", smtp_server="smtp.gmail.com"):
     """
     Connect to Gmail, fetch unread emails, generate AI replies, and send them.
-    Uses the app password stored in st.secrets["email"]["password"].
+    Uses the app password stored in st.secrets["EMAIL_PASSWORD"] (flat key).
     """
     log = []
     try:
-        # Get password from secrets (not visible)
-        gmail_password = st.secrets["email"]["password"]
+        # Get password from flat secret (more robust)
+        gmail_password = st.secrets["EMAIL_PASSWORD"]
         
         imap = imaplib.IMAP4_SSL(imap_server)
         imap.login(gmail_user, gmail_password)
@@ -463,7 +462,6 @@ def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", s
 
 # ========== INIT SESSION STATE ==========
 if "guidelines_text" not in st.session_state:
-    # Set the embedded guidelines as the default
     st.session_state.guidelines_text = COMPANY_GUIDELINES
 if "lang" not in st.session_state:
     st.session_state.lang = "English"
@@ -511,7 +509,6 @@ with st.sidebar:
     st.markdown("---")
     
     st.subheader(texts["sidebar_title"])
-    # No file upload – show that guidelines are pre-loaded
     st.success(texts["guidelines_loaded"])
     with st.expander(texts["guidelines_summary"]):
         st.write(st.session_state.guidelines_text[:500] + "...")
@@ -533,14 +530,14 @@ with st.sidebar:
     # Email Auto‑Reply Section – NO PASSWORD FIELD
     st.markdown(f"### {texts['email_settings']}")
     email_address = st.text_input(texts["email_address"], value=st.session_state.email_address)
-    st.info("🔒 Mot de passe d'application stocké dans les secrets Streamlit (non affiché).")
+    st.info("🔒 Password stored in secrets (EMAIL_PASSWORD).")
     imap_server = st.text_input("IMAP Server", value=st.session_state.email_imap_server)
     smtp_server = st.text_input("SMTP Server", value=st.session_state.email_smtp_server)
     if st.button("Save Email Settings", use_container_width=True):
         st.session_state.email_address = email_address
         st.session_state.email_imap_server = imap_server
         st.session_state.email_smtp_server = smtp_server
-        st.success("Email settings saved (password from secrets).")
+        st.success("Email settings saved.")
     
     st.markdown("---")
     st.markdown("Built by **Gesner Deslandes**, Engineer-in-Chief")
