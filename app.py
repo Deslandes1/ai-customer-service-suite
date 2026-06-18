@@ -323,7 +323,7 @@ FEMALE_VOICE_MAP = {
     "Spanish": "es-ES-ElviraNeural"
 }
 
-# ========== EXTRACT TEXT FROM UPLOADED FILE (kept for reference) ==========
+# ========== EXTRACT TEXT FROM UPLOADED FILE ==========
 def extract_text_from_file(uploaded_file):
     if uploaded_file is None:
         return ""
@@ -385,7 +385,6 @@ async def text_to_speech(text, voice, output_path):
 
 def generate_audio(text, lang, voice_type="female"):
     if voice_type == "male":
-        # fallback (not used)
         voice = "en-US-ChristopherNeural"
     else:
         voice = FEMALE_VOICE_MAP.get(lang, "en-US-JennyNeural")
@@ -531,7 +530,7 @@ if "email_log" not in st.session_state:
 
 # ========== SIDEBAR ==========
 with st.sidebar:
-    # --- Your GitHub picture and name ---
+    # --- Your picture and name (only place) ---
     st.image("https://raw.githubusercontent.com/Deslandes1/ai-customer-service-suite/main/Gesner%20Deslandes.png", width=80)
     st.markdown("### **Gesner Deslandes**")
     st.markdown("## **GlobalInternet.py**")
@@ -598,12 +597,8 @@ with st.sidebar:
     st.markdown("---")
     st.caption(texts["footer"])
 
-# ========== MAIN PAGE ==========
-profile_col, title_col = st.columns([1, 9])
-with profile_col:
-    st.image("https://raw.githubusercontent.com/Deslandes1/ai-customer-service-suite/main/Gesner%20Deslandes.png", width=70)
-with title_col:
-    st.markdown(f'<div class="main-title"><h1>{texts["title"]}</h1><p>{texts["subtitle"]}</p></div>', unsafe_allow_html=True)
+# ========== MAIN PAGE – TITLE ONLY (no image) ==========
+st.markdown(f'<div class="main-title"><h1>{texts["title"]}</h1><p>{texts["subtitle"]}</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
