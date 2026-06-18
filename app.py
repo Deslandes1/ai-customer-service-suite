@@ -111,76 +111,92 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ========== CUSTOM CSS ==========
+# ========== CUSTOM CSS – LIGHT PURPLE THEME ==========
 st.markdown("""
 <style>
     .stApp {
-        background: linear-gradient(135deg, #0a192f 0%, #112240 100%);
-        color: #ffffff;
+        background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+        color: #1a1a2e;
     }
-    .main-title {
-        text-align: center;
-        margin-bottom: 1rem;
-        position: relative;
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #d1c4e9 0%, #b39ddb 100%);
+        border-right: 1px solid #7b1fa2;
     }
-    .main-title h1 {
-        color: #ffd966;
+    [data-testid="stSidebar"] .stMarkdown,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] .stCaption,
+    [data-testid="stSidebar"] .stSelectbox label {
+        color: #1a1a2e !important;
     }
-    .main-title p {
-        color: #a0b0c0;
+    [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] span {
+        color: #1a1a2e !important;
     }
-    .profile-pic {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #ffd966;
+    div[data-baseweb="select"] ul {
+        background-color: #e1bee7 !important;
+    }
+    div[data-baseweb="select"] ul li {
+        color: #1a1a2e !important;
+        background-color: #e1bee7 !important;
+    }
+    div[data-baseweb="select"] ul li:hover {
+        background-color: #ce93d8 !important;
+    }
+    h1, h2, h3 {
+        color: #4a148c !important;
+    }
+    p, li, .stMarkdown {
+        color: #1a1a2e !important;
     }
     .stButton>button {
-        background-color: #e94560;
-        color: white;
-        border-radius: 30px;
-        font-weight: bold;
+        background-color: #8e24aa !important;
+        color: white !important;
+        border-radius: 30px !important;
+        font-weight: bold !important;
         width: 100%;
     }
     .stButton>button:hover {
-        background-color: #ff6b6b;
+        background-color: #ab47bc !important;
+        transform: scale(1.02);
     }
     .security-badge {
-        background: #0a192f;
-        border: 1px solid #00ebc7;
+        background: #f3e5f5;
+        border: 1px solid #7b1fa2;
         border-radius: 30px;
         padding: 8px 15px;
         margin: 10px 0;
         text-align: center;
-        color: #00ebc7;
+        color: #4a148c;
         font-weight: bold;
-        font-family: monospace;
-        word-break: break-all;
     }
     .chat-message {
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.6);
         border-radius: 15px;
         padding: 10px;
         margin: 5px 0;
+        color: #1a1a2e;
     }
     .email-log {
-        background: rgba(0,255,200,0.05);
-        border-left: 3px solid #00ebc7;
+        background: rgba(255, 255, 255, 0.4);
+        border-left: 3px solid #7b1fa2;
         padding: 10px;
         margin: 5px 0;
         font-family: monospace;
         font-size: 0.9rem;
+        color: #1a1a2e;
     }
     .warning-box {
-        background: rgba(255, 193, 7, 0.15);
+        background: rgba(255, 193, 7, 0.2);
         border-left: 4px solid #ffc107;
         padding: 10px 15px;
         border-radius: 5px;
         margin: 10px 0;
+        color: #1a1a2e;
+    }
+    .main-title h1 {
+        color: #4a148c !important;
+    }
+    .main-title p {
+        color: #1a1a2e !important;
     }
 </style>
 """, unsafe_allow_html=True)
