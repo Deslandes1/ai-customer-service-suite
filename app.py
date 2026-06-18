@@ -531,7 +531,9 @@ if "email_log" not in st.session_state:
 
 # ========== SIDEBAR ==========
 with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/null/customer-support.png", width=80)
+    # --- Your GitHub picture and name ---
+    st.image("https://raw.githubusercontent.com/Deslandes1/ai-customer-service-suite/main/Gesner%20Deslandes.png", width=80)
+    st.markdown("### **Gesner Deslandes**")
     st.markdown("## **GlobalInternet.py**")
     st.markdown("**AI Customer Service Suite**")
     st.markdown("---")
