@@ -117,10 +117,8 @@ TEXTS = {
         "security_badge": "🔐 Secure API connection active",
         "lang": "Language",
         "guidelines_summary": "Guidelines Summary (first 500 chars):",
-        # New email auto‑reply texts
         "email_settings": "📧 Email Auto‑Reply (Gmail)",
         "email_address": "Your Gmail Address",
-        "email_password": "App Password (Gmail)",
         "email_imap_server": "IMAP Server (default: imap.gmail.com)",
         "email_smtp_server": "SMTP Server (default: smtp.gmail.com)",
         "email_process_btn": "📬 Process Inbox & Auto‑Reply",
@@ -159,7 +157,6 @@ TEXTS = {
         "guidelines_summary": "Résumé des politiques (500 premiers caractères) :",
         "email_settings": "📧 Réponse automatique par email (Gmail)",
         "email_address": "Votre adresse Gmail",
-        "email_password": "Mot de passe d'application (Gmail)",
         "email_imap_server": "Serveur IMAP (défaut : imap.gmail.com)",
         "email_smtp_server": "Serveur SMTP (défaut : smtp.gmail.com)",
         "email_process_btn": "📬 Traiter la boîte de réception et répondre",
@@ -198,7 +195,6 @@ TEXTS = {
         "guidelines_summary": "Resumen de políticas (primeros 500 caracteres):",
         "email_settings": "📧 Respuesta automática por email (Gmail)",
         "email_address": "Su dirección de Gmail",
-        "email_password": "Contraseña de aplicación (Gmail)",
         "email_imap_server": "Servidor IMAP (por defecto: imap.gmail.com)",
         "email_smtp_server": "Servidor SMTP (por defecto: smtp.gmail.com)",
         "email_process_btn": "📬 Procesar bandeja de entrada y responder",
@@ -224,7 +220,7 @@ MALE_VOICE_MAP = {
     "Spanish": "es-ES-AlvaroNeural"
 }
 
-# ========== MALE VOICE INTRO TEXT (concise for social media) ==========
+# ========== MALE VOICE INTRO TEXT ==========
 MALE_INTRO_TEXT = {
     "English": "Hello, this is Gesner Deslandes from GlobalInternet.py. The AI Customer Service Suite automates customer support using your company guidelines. It answers text messages, emails, and phone calls in English, French, or Spanish. You can connect your phone via Twilio for WhatsApp and voice. Full source code is available. Small Business License 499 dollars. Agency License 1499 dollars. White‑Label License 2999 dollars. Contact us at (509) 4738 5663 or deslandes78@gmail.com. Visit GlobalInternet.py to purchase.",
     "French": "Bonjour, ici Gesner Deslandes de GlobalInternet.py. La Suite de service client IA automatise le support client avec vos propres politiques. Elle répond par SMS, email et appel en anglais, français ou espagnol. Connectez votre numéro via Twilio pour WhatsApp et la voix. Code source disponible. Licence petite entreprise 499 dollars. Licence agence 1499 dollars. Licence marque blanche 2999 dollars. Contactez‑nous au (509) 4738 5663 ou à deslandes78@gmail.com. Visitez GlobalInternet.py pour acheter.",
@@ -250,12 +246,11 @@ def extract_text_from_file(uploaded_file):
     else:
         return ""
 
-# ========== AI RESPONSE FUNCTION (Groq) ==========
+# ========== AI RESPONSE FUNCTION ==========
 def get_ai_response(question, guidelines, lang):
     if not guidelines:
         return "Please upload your company guidelines first. / Veuillez d'abord télécharger vos politiques. / Por favor, cargue primero sus políticas."
     
-    # Add company tagline to the prompt for consistency
     tagline = TEXTS[lang]["email_company_tagline"]
     
     system_prompt = f"""You are an AI customer service agent for a company. Answer the customer's question based ONLY on the following company guidelines. Be polite, helpful, and concise. If the question cannot be answered from the guidelines, say "I cannot find that information in our guidelines. Please contact a human agent." 
@@ -302,7 +297,7 @@ def generate_audio(text, lang, voice_type="female"):
     os.unlink(tmp_path)
     return audio_bytes
 
-# ========== EMAIL AUTO‑REPLY FUNCTIONS ==========
+# ========== EMAIL AUTO‑REPLY FUNCTIONS (using secrets) ==========
 def get_email_body(msg):
     """Extract plain text body from an email message."""
     if msg.is_multipart():
@@ -311,30 +306,29 @@ def get_email_body(msg):
             content_disposition = str(part.get("Content-Disposition"))
             if content_type == "text/plain" and "attachment" not in content_disposition:
                 return part.get_payload(decode=True).decode("utf-8", errors="ignore")
-        # If no plain text, try HTML and strip tags
         for part in msg.walk():
             if part.get_content_type() == "text/html":
                 html = part.get_payload(decode=True).decode("utf-8", errors="ignore")
-                # Very basic HTML stripping
                 import re
                 return re.sub(r'<[^>]+>', '', html)
     else:
         return msg.get_payload(decode=True).decode("utf-8", errors="ignore")
     return ""
 
-def process_emails(gmail_user, gmail_password, guidelines, lang, imap_server="imap.gmail.com", smtp_server="smtp.gmail.com"):
+def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", smtp_server="smtp.gmail.com"):
     """
     Connect to Gmail, fetch unread emails, generate AI replies, and send them.
-    Returns a log of processed emails.
+    Uses the app password stored in st.secrets["email"]["password"].
     """
     log = []
     try:
-        # Connect to IMAP
+        # Get password from secrets (not visible)
+        gmail_password = st.secrets["email"]["password"]
+        
         imap = imaplib.IMAP4_SSL(imap_server)
         imap.login(gmail_user, gmail_password)
         imap.select("INBOX")
         
-        # Search for unread emails
         status, messages = imap.search(None, "UNSEEN")
         if status != "OK":
             raise Exception("Failed to search for unread emails.")
@@ -357,14 +351,11 @@ def process_emails(gmail_user, gmail_password, guidelines, lang, imap_server="im
             from_addr = msg.get("From")
             body = get_email_body(msg)
             
-            # Generate AI reply
             reply_text = get_ai_response(body, guidelines, lang)
             
-            # Send reply via SMTP
             smtp = smtplib.SMTP_SSL(smtp_server, 465)
             smtp.login(gmail_user, gmail_password)
             
-            # Build reply message
             reply_msg = MIMEMultipart()
             reply_msg["From"] = gmail_user
             reply_msg["To"] = from_addr
@@ -399,8 +390,6 @@ if "twilio_phone" not in st.session_state:
     st.session_state.twilio_phone = ""
 if "email_address" not in st.session_state:
     st.session_state.email_address = "deslandes78@gmail.com"
-if "email_password" not in st.session_state:
-    st.session_state.email_password = ""
 if "email_imap_server" not in st.session_state:
     st.session_state.email_imap_server = "imap.gmail.com"
 if "email_smtp_server" not in st.session_state:
@@ -426,7 +415,7 @@ with st.sidebar:
     st.markdown(f'<div class="security-badge">{texts["security_badge"]}</div>', unsafe_allow_html=True)
     st.markdown("---")
     
-    # ----- Male Voice Button for Social Media -----
+    # Male Voice Button
     st.markdown("### 🎙️ AI Voice for Social Media")
     male_btn = st.button("🎙️ AI Male Voice – Describe Software for Social Media", use_container_width=True)
     if male_btn:
@@ -460,18 +449,18 @@ with st.sidebar:
         st.success("Settings saved (for demo purposes). Real Twilio integration requires webhook.")
     
     st.markdown("---")
-    # New Email Auto‑Reply Section
+    
+    # Email Auto‑Reply Section – NO PASSWORD FIELD
     st.markdown(f"### {texts['email_settings']}")
     email_address = st.text_input(texts["email_address"], value=st.session_state.email_address)
-    email_password = st.text_input(texts["email_password"], type="password", value=st.session_state.email_password)
+    st.info("🔒 Mot de passe d'application stocké dans les secrets Streamlit (non affiché).")
     imap_server = st.text_input("IMAP Server", value=st.session_state.email_imap_server)
     smtp_server = st.text_input("SMTP Server", value=st.session_state.email_smtp_server)
     if st.button("Save Email Settings", use_container_width=True):
         st.session_state.email_address = email_address
-        st.session_state.email_password = email_password
         st.session_state.email_imap_server = imap_server
         st.session_state.email_smtp_server = smtp_server
-        st.success("Email settings saved.")
+        st.success("Email settings saved (password from secrets).")
     
     st.markdown("---")
     st.markdown("Built by **Gesner Deslandes**, Engineer-in-Chief")
@@ -487,7 +476,7 @@ with profile_col:
 with title_col:
     st.markdown(f'<div class="main-title"><h1>{texts["title"]}</h1><p>{texts["subtitle"]}</p></div>', unsafe_allow_html=True)
 
-# AI Voice Introduction (Female)
+# Female Voice Intro
 if st.button(texts["intro_btn"], use_container_width=True):
     with st.spinner("Generating voice introduction..."):
         audio = generate_audio(texts["intro_text"], st.session_state.lang, voice_type="female")
@@ -496,7 +485,6 @@ if st.button(texts["intro_btn"], use_container_width=True):
 
 st.markdown("---")
 
-# Check for Groq API key in secrets
 if "GROQ_API_KEY" not in st.secrets:
     st.error(texts["api_key_warning"])
 else:
@@ -522,7 +510,7 @@ else:
 
 st.markdown("---")
 
-# ========== NEW: EMAIL AUTO‑REPLY SECTION ==========
+# ========== EMAIL AUTO‑REPLY SECTION ==========
 st.subheader("📬 Automated Email Reply")
 st.write("Connect your Gmail account and click the button below to process all unread emails. The AI will generate replies based on your guidelines and send them automatically.")
 
@@ -535,13 +523,12 @@ with col2:
 if process_btn:
     if not st.session_state.guidelines_text:
         st.warning(texts["no_guidelines"])
-    elif not st.session_state.email_address or not st.session_state.email_password:
-        st.warning("Please enter your Gmail address and App Password in the sidebar.")
+    elif not st.session_state.email_address:
+        st.warning("Veuillez entrer votre adresse Gmail dans la barre latérale.")
     else:
         with st.spinner(texts["email_processing"]):
             log, result = process_emails(
                 st.session_state.email_address,
-                st.session_state.email_password,
                 st.session_state.guidelines_text,
                 st.session_state.lang,
                 st.session_state.email_imap_server,
@@ -553,11 +540,9 @@ if process_btn:
             st.info(texts["email_no_unread"])
         else:
             st.success(texts["email_processed"].format(len(log), ", ".join([entry.split(" ")[2] for entry in log])))
-            # Store log in session
             st.session_state.email_log = log
             st.balloons()
 
-# Display log if any
 if st.session_state.email_log:
     st.markdown(f"### {texts['email_log_title']}")
     for entry in st.session_state.email_log:
