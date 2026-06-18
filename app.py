@@ -190,8 +190,6 @@ TEXTS = {
     "English": {
         "title": "🤖 AI Customer Service Suite",
         "subtitle": "Smart text, email, and voice support powered by your company guidelines",
-        "intro_btn": "🎙️ Watch Introduction (AI Female Voice)",
-        "intro_text": "Welcome to AI Customer Service Suite. This software helps companies automate customer support across text messages, emails, and phone/WhatsApp calls. You upload your company guidelines, and the AI answers every inquiry based on those policies. It works in English, French, and Spanish. You can connect your phone number via Twilio to answer WhatsApp chats and calls automatically. This tool saves time, improves response consistency, and works 24/7. The full source code is available for a one‑time payment. Small Business License is 499 US dollars. Agency or Enterprise License is 1,499 US dollars. White‑Label or Reseller License is 2,999 US dollars. Contact Gesner Deslandes at GlobalInternet.py to purchase. This software was built by Gesner Deslandes, Engineer‑in‑Chief at GlobalInternet.py.",
         "sidebar_title": "Company Setup",
         "guidelines_loaded": "✅ Company guidelines are pre‑loaded. AI will use them for all responses.",
         "no_guidelines": "⚠️ Guidelines are pre‑loaded. No need to upload.",
@@ -224,14 +222,11 @@ TEXTS = {
         "email_error": "❌ Error processing emails: {}",
         "email_log_title": "📋 Email Processing Log",
         "email_company_tagline": "We provide tailored software solutions connecting global market with our local expertise.",
-        # New text for full female voice description (combined)
         "female_full_intro": "Welcome to AI Customer Service Suite. This software helps companies automate customer support across text messages, emails, and phone/WhatsApp calls. You upload your company guidelines, and the AI answers every inquiry based on those policies. It works in English, French, and Spanish. You can connect your phone number via Twilio to answer WhatsApp chats and calls automatically. For email, the app replies to up to one hundred emails per day using a free Gmail account. If you need to send more, you can wait twenty‑four hours for the limit to reset or upgrade to Google Workspace to send up to two thousand emails per day. This tool saves time, improves response consistency, and works 24/7. The full source code is available for a one‑time payment. Small Business License is 499 US dollars. Agency or Enterprise License is 1,499 US dollars. White‑Label or Reseller License is 2,999 US dollars. Contact Gesner Deslandes at GlobalInternet.py to purchase. This software was built by Gesner Deslandes, Engineer‑in‑Chief at GlobalInternet.py."
     },
     "French": {
         "title": "🤖 Suite de service client IA",
         "subtitle": "Support textuel, email et vocal intelligent basé sur vos politiques",
-        "intro_btn": "🎙️ Regarder l'introduction (voix IA féminine)",
-        "intro_text": "Bienvenue dans la Suite de service client IA. Ce logiciel aide les entreprises à automatiser le support client par SMS, emails et appels téléphoniques/WhatsApp. Vous téléchargez vos politiques, et l'IA répond à chaque demande selon ces règles. Fonctionne en anglais, français et espagnol. Vous pouvez connecter votre numéro via Twilio pour répondre aux appels et chats WhatsApp automatiquement. Cet outil fait gagner du temps, améliore la cohérence et travaille 24/7. Le code source complet est disponible pour un paiement unique. La licence pour petites entreprises est de 499 dollars américains. La licence agence ou entreprise est de 1 499 dollars américains. La licence marque blanche ou revendeur est de 2 999 dollars américains. Contactez Gesner Deslandes chez GlobalInternet.py pour acheter. Ce logiciel a été construit par Gesner Deslandes, ingénieur en chef chez GlobalInternet.py.",
         "sidebar_title": "Configuration entreprise",
         "guidelines_loaded": "✅ Les politiques de l'entreprise sont pré‑chargées. L'IA les utilisera pour toutes les réponses.",
         "no_guidelines": "⚠️ Les politiques sont pré‑chargées. Pas besoin de télécharger.",
@@ -269,8 +264,6 @@ TEXTS = {
     "Spanish": {
         "title": "🤖 Suite de servicio al cliente IA",
         "subtitle": "Soporte inteligente por texto, email y voz basado en sus políticas",
-        "intro_btn": "🎙️ Ver introducción (voz IA femenina)",
-        "intro_text": "Bienvenido a la Suite de servicio al cliente IA. Este software ayuda a las empresas a automatizar el soporte al cliente mediante mensajes de texto, correos electrónicos y llamadas telefónicas/WhatsApp. Usted sube sus políticas y la IA responde cada consulta según esas reglas. Funciona en inglés, francés y español. Puede conectar su número de teléfono a través de Twilio para responder chats y llamadas de WhatsApp automáticamente. Esta herramienta ahorra tiempo, mejora la consistencia y trabaja 24/7. El código fuente completo está disponible por un pago único. La licencia para pequeñas empresas es de 499 dólares estadounidenses. La licencia para agencia o empresa es de 1.499 dólares estadounidenses. La licencia de marca blanca o reventa es de 2.999 dólares estadounidenses. Contacte a Gesner Deslandes en GlobalInternet.py para comprar. Este software fue construido por Gesner Deslandes, ingeniero jefe de GlobalInternet.py.",
         "sidebar_title": "Configuración de la empresa",
         "guidelines_loaded": "✅ Las políticas de la empresa están pre‑cargadas. La IA las usará para todas las respuestas.",
         "no_guidelines": "⚠️ Las políticas están pre‑cargadas. No es necesario subir archivos.",
@@ -376,7 +369,7 @@ async def text_to_speech(text, voice, output_path):
 
 def generate_audio(text, lang, voice_type="female"):
     if voice_type == "male":
-        # we no longer use male, but kept for compatibility
+        # fallback (not used)
         voice = "en-US-ChristopherNeural"
     else:
         voice = FEMALE_VOICE_MAP.get(lang, "en-US-JennyNeural")
@@ -538,7 +531,7 @@ with st.sidebar:
     st.markdown(f'<div class="security-badge">{texts["security_badge"]}</div>', unsafe_allow_html=True)
     st.markdown("---")
     
-    # NEW: Female Voice Full Description Button (replaces the male voice)
+    # Female Voice Full Description Button (sidebar only)
     st.markdown("### 🎙️ AI Voice for Social Media")
     female_full_btn = st.button("🎙️ AI Female Voice – Full Software Description", use_container_width=True)
     if female_full_btn:
@@ -593,13 +586,6 @@ with profile_col:
     st.image("https://raw.githubusercontent.com/Deslandes1/ai-customer-service-suite/main/Gesner%20Deslandes.png", width=70)
 with title_col:
     st.markdown(f'<div class="main-title"><h1>{texts["title"]}</h1><p>{texts["subtitle"]}</p></div>', unsafe_allow_html=True)
-
-# Female Voice Intro (short)
-if st.button(texts["intro_btn"], use_container_width=True):
-    with st.spinner("Generating voice introduction..."):
-        audio = generate_audio(texts["intro_text"], st.session_state.lang, voice_type="female")
-        st.audio(audio, format="audio/mp3")
-        st.success("Introduction played. You can listen again if needed.")
 
 st.markdown("---")
 
