@@ -14,6 +14,7 @@ import edge_tts
 import PyPDF2
 import docx
 import concurrent.futures
+from email.utils import parsedate_to_datetime
 
 # ============================================================================
 # EMBEDDED COMPANY GUIDELINES (GlobalInternet.py)
@@ -351,7 +352,6 @@ Customer question: {question}
 Answer:"""
     
     try:
-        # Use a ThreadPoolExecutor to enforce timeout
         with concurrent.futures.ThreadPoolExecutor() as executor:
             future = executor.submit(
                 lambda: Groq(api_key=st.secrets["GROQ_API_KEY"]).chat.completions.create(
@@ -389,7 +389,7 @@ def generate_audio(text, lang, voice_type="female"):
     os.unlink(tmp_path)
     return audio_bytes
 
-# ========== EMAIL AUTO‑REPLY FUNCTIONS (using flat secret) ==========
+# ========== EMAIL AUTO‑REPLY FUNCTIONS ==========
 def get_email_body(msg):
     """Extract plain text body from an email message."""
     if msg.is_multipart():
@@ -411,10 +411,10 @@ def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", s
     Connect to Gmail, fetch unread emails, generate AI replies, and send them.
     Uses the app password stored in st.secrets["EMAIL_PASSWORD"] (flat key).
     Processes a maximum of 10 emails per click to avoid hanging.
+    Log includes the date/time of the original email.
     """
     log = []
     try:
-        # Get password from flat secret (more robust)
         gmail_password = st.secrets["EMAIL_PASSWORD"]
         
         imap = imaplib.IMAP4_SSL(imap_server)
@@ -437,7 +437,6 @@ def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", s
         processed_count = 0
         replied_to = []
         
-        # Use st.progress to show progress
         progress_bar = st.progress(0, text="Processing emails...")
         total = len(email_ids)
         
@@ -454,7 +453,18 @@ def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", s
                 from_addr = msg.get("From")
                 body = get_email_body(msg)
                 
-                # Get AI reply with timeout (15 seconds)
+                # Get the date of the email
+                date_header = msg.get("Date")
+                if date_header:
+                    try:
+                        email_date = parsedate_to_datetime(date_header)
+                        date_str = email_date.strftime("%Y-%m-%d %H:%M:%S")
+                    except:
+                        date_str = date_header
+                else:
+                    date_str = "Unknown date"
+                
+                # Get AI reply with timeout
                 reply_text = get_ai_response(body, guidelines, lang, timeout=15)
                 
                 smtp = smtplib.SMTP_SSL(smtp_server, 465)
@@ -471,9 +481,9 @@ def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", s
                 
                 processed_count += 1
                 replied_to.append(from_addr)
-                log.append(f"Replied to {from_addr} about '{subject}'")
+                log.append(f"📨 [{date_str}] Replied to {from_addr} about '{subject}'")
             except Exception as e:
-                log.append(f"❌ Failed to process email {eid}: {str(e)}")
+                log.append(f"❌ [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Failed to process email {eid}: {str(e)}")
         
         progress_bar.progress(1.0, text="Done!")
         imap.close()
@@ -644,7 +654,6 @@ if process_btn:
         elif "No unread" in result:
             st.info(texts["email_no_unread"])
         else:
-            # Show success message with details
             st.success(result)
             st.session_state.email_log = log
             st.balloons()
@@ -652,7 +661,7 @@ if process_btn:
 if st.session_state.email_log:
     st.markdown(f"### {texts['email_log_title']}")
     for entry in st.session_state.email_log:
-        st.markdown(f'<div class="email-log">📨 {entry}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="email-log">{entry}</div>', unsafe_allow_html=True)
 
 st.markdown("---")
 st.markdown("### 📞 Voice & WhatsApp Call Integration")
