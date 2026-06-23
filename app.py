@@ -9,7 +9,9 @@ import email
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
-from groq import Groq
+import requests
+import dashscope
+from dashscope import Generation
 import edge_tts
 import PyPDF2
 import docx
@@ -111,7 +113,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ========== CUSTOM CSS – LIGHT PURPLE THEME ==========
+# ========== CUSTOM CSS – LIGHT PURPLE THEME (unchanged) ==========
 st.markdown("""
 <style>
     .stApp {
@@ -201,7 +203,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ========== LANGUAGE DICTIONARIES ==========
+# ========== LANGUAGE DICTIONARIES (unchanged) ==========
 TEXTS = {
     "English": {
         "title": "🤖 AI Customer Service Suite",
@@ -209,7 +211,7 @@ TEXTS = {
         "sidebar_title": "Company Setup",
         "guidelines_loaded": "✅ Company guidelines are pre‑loaded. AI will use them for all responses.",
         "no_guidelines": "⚠️ Guidelines are pre‑loaded. No need to upload.",
-        "api_key_warning": "⚠️ Missing Groq API key. Add GROQ_API_KEY to Streamlit secrets.",
+        "api_key_warning": "⚠️ Missing Alibaba Cloud API key. Add QWEN_API_KEY to Streamlit secrets.",
         "twilio_info": "📞 Phone/WhatsApp Integration (Twilio Required)",
         "twilio_notice": "⚠️ To use voice and WhatsApp features, you must sign up for a Twilio account and purchase a phone number from them. Twilio charges a monthly fee for the number and per‑minute/per‑message usage. Fill in the fields below with the credentials and number Twilio provides you.",
         "twilio_instruction": "To connect your phone number for voice and WhatsApp, configure Twilio webhook to point to: https://your-app.streamlit.app/webhook . This demo includes a test chat interface below.",
@@ -222,7 +224,7 @@ TEXTS = {
         "customer_email": "Customer Email (optional)",
         "customer_question": "Customer Question / Message",
         "send_text": "Send (Simulate Text/Email)",
-        "ai_response": "🤖 AI Response",
+        "ai_response": "🤖 AI Response (Qwen Cloud)",
         "footer": "© 2026 GlobalInternet.py – AI Customer Service Suite",
         "security_badge": "🔐 Secure API connection active",
         "lang": "Language",
@@ -231,13 +233,13 @@ TEXTS = {
         "email_address": "Your Gmail Address",
         "email_imap_server": "IMAP Server (default: imap.gmail.com)",
         "email_smtp_server": "SMTP Server (default: smtp.gmail.com)",
-        "email_process_btn": "📬 Process Inbox & Auto‑Reply",
+        "email_process_btn": "📬 Process Inbox & Auto‑Reply (Qwen)",
         "email_processing": "Processing unread emails...",
         "email_processed": "✅ Processed {} emails. Replies sent to {}.",
         "email_no_unread": "No unread emails found.",
         "email_error": "❌ Error processing emails: {}",
         "email_log_title": "📋 Email Processing Log",
-        "email_company_tagline": "We provide tailored software solutions connecting global market with our local expertise.",
+        "email_company_tagline": "We provide tailored software solutions connecting the global market with our local expertise.",
         "female_full_intro": "Welcome to AI Customer Service Suite. This software helps companies automate customer support across text messages, emails, and phone/WhatsApp calls. You upload your company guidelines, and the AI answers every inquiry based on those policies. It works in English, French, and Spanish. You can connect your phone number via Twilio to answer WhatsApp chats and calls automatically. For email, the app replies to up to one hundred emails per day using a free Gmail account. If you need to send more, you can wait twenty‑four hours for the limit to reset or upgrade to Google Workspace to send up to two thousand emails per day. This tool saves time, improves response consistency, and works 24/7. The full source code is available for a one‑time payment. Small Business License is 499 US dollars. Agency or Enterprise License is 1,499 US dollars. White‑Label or Reseller License is 2,999 US dollars. Contact Gesner Deslandes at GlobalInternet.py to purchase. This software was built by Gesner Deslandes, Engineer‑in‑Chief at GlobalInternet.py."
     },
     "French": {
@@ -246,7 +248,7 @@ TEXTS = {
         "sidebar_title": "Configuration entreprise",
         "guidelines_loaded": "✅ Les politiques de l'entreprise sont pré‑chargées. L'IA les utilisera pour toutes les réponses.",
         "no_guidelines": "⚠️ Les politiques sont pré‑chargées. Pas besoin de télécharger.",
-        "api_key_warning": "⚠️ Clé Groq API manquante. Ajoutez GROQ_API_KEY aux secrets Streamlit.",
+        "api_key_warning": "⚠️ Clé API Alibaba Cloud manquante. Ajoutez QWEN_API_KEY aux secrets Streamlit.",
         "twilio_info": "📞 Intégration téléphone/WhatsApp (Twilio requis)",
         "twilio_notice": "⚠️ Pour utiliser les fonctionnalités vocales et WhatsApp, vous devez vous inscrire à un compte Twilio et acheter un numéro de téléphone auprès d'eux. Twilio facture des frais mensuels pour le numéro et des frais à la minute/au message. Remplissez les champs ci‑dessous avec les identifiants et le numéro fournis par Twilio.",
         "twilio_instruction": "Pour connecter votre numéro pour les appels vocaux et WhatsApp, configurez le webhook Twilio vers : https://votre-app.streamlit.app/webhook . Cette démo inclut une interface de chat de test ci‑dessous.",
@@ -259,7 +261,7 @@ TEXTS = {
         "customer_email": "Email du client (optionnel)",
         "customer_question": "Question / message du client",
         "send_text": "Envoyer (simuler texte/email)",
-        "ai_response": "🤖 Réponse IA",
+        "ai_response": "🤖 Réponse IA (Qwen Cloud)",
         "footer": "© 2026 GlobalInternet.py – Suite service client IA",
         "security_badge": "🔐 Connexion API sécurisée active",
         "lang": "Langue",
@@ -268,7 +270,7 @@ TEXTS = {
         "email_address": "Votre adresse Gmail",
         "email_imap_server": "Serveur IMAP (défaut : imap.gmail.com)",
         "email_smtp_server": "Serveur SMTP (défaut : smtp.gmail.com)",
-        "email_process_btn": "📬 Traiter la boîte de réception et répondre",
+        "email_process_btn": "📬 Traiter la boîte de réception et répondre (Qwen)",
         "email_processing": "Traitement des emails non lus...",
         "email_processed": "✅ {} emails traités. Réponses envoyées à {}.",
         "email_no_unread": "Aucun email non lu trouvé.",
@@ -283,7 +285,7 @@ TEXTS = {
         "sidebar_title": "Configuración de la empresa",
         "guidelines_loaded": "✅ Las políticas de la empresa están pre‑cargadas. La IA las usará para todas las respuestas.",
         "no_guidelines": "⚠️ Las políticas están pre‑cargadas. No es necesario subir archivos.",
-        "api_key_warning": "⚠️ Falta la clave de Groq API. Agregue GROQ_API_KEY a los secretos de Streamlit.",
+        "api_key_warning": "⚠️ Falta la clave API de Alibaba Cloud. Agregue QWEN_API_KEY a los secretos de Streamlit.",
         "twilio_info": "📞 Integración telefónica/WhatsApp (requiere Twilio)",
         "twilio_notice": "⚠️ Para usar las funciones de voz y WhatsApp, debe registrarse en Twilio y comprar un número de teléfono. Twilio cobra una tarifa mensual por el número y un costo por minuto/mensaje. Complete los campos a continuación con las credenciales y el número que Twilio le proporcione.",
         "twilio_instruction": "Para conectar su número para llamadas de voz y WhatsApp, configure el webhook de Twilio apuntando a: https://su-app.streamlit.app/webhook . Esta demo incluye una interfaz de chat de prueba a continuación.",
@@ -296,7 +298,7 @@ TEXTS = {
         "customer_email": "Correo electrónico del cliente (opcional)",
         "customer_question": "Pregunta / mensaje del cliente",
         "send_text": "Enviar (simular texto/email)",
-        "ai_response": "🤖 Respuesta IA",
+        "ai_response": "🤖 Respuesta IA (Qwen Cloud)",
         "footer": "© 2026 GlobalInternet.py – Suite servicio al cliente IA",
         "security_badge": "🔐 Conexión API segura activa",
         "lang": "Idioma",
@@ -305,7 +307,7 @@ TEXTS = {
         "email_address": "Su dirección de Gmail",
         "email_imap_server": "Servidor IMAP (por defecto: imap.gmail.com)",
         "email_smtp_server": "Servidor SMTP (por defecto: smtp.gmail.com)",
-        "email_process_btn": "📬 Procesar bandeja de entrada y responder",
+        "email_process_btn": "📬 Procesar bandeja de entrada y responder (Qwen)",
         "email_processing": "Procesando correos no leídos...",
         "email_processed": "✅ {} correos procesados. Respuestas enviadas a {}.",
         "email_no_unread": "No se encontraron correos no leídos.",
@@ -316,14 +318,14 @@ TEXTS = {
     }
 }
 
-# ========== VOICE MAPPINGS ==========
+# ========== VOICE MAPPINGS (unchanged) ==========
 FEMALE_VOICE_MAP = {
     "English": "en-US-JennyNeural",
     "French": "fr-FR-DeniseNeural",
     "Spanish": "es-ES-ElviraNeural"
 }
 
-# ========== EXTRACT TEXT FROM UPLOADED FILE ==========
+# ========== EXTRACT TEXT FROM UPLOADED FILE (unchanged) ==========
 def extract_text_from_file(uploaded_file):
     if uploaded_file is None:
         return ""
@@ -342,9 +344,9 @@ def extract_text_from_file(uploaded_file):
     else:
         return ""
 
-# ========== AI RESPONSE FUNCTION WITH TIMEOUT ==========
-def get_ai_response(question, guidelines, lang, timeout=15):
-    """Get AI response with a timeout."""
+# ========== QWEN CLOUD AI RESPONSE (replaces Groq) ==========
+def get_ai_response_qwen(question, guidelines, lang, timeout=15):
+    """Get AI response using Qwen Cloud (DashScope) with a timeout."""
     if not guidelines:
         return "Please upload your company guidelines first. / Veuillez d'abord télécharger vos politiques. / Por favor, cargue primero sus políticas."
     
@@ -362,23 +364,23 @@ Customer question: {question}
 Answer:"""
     
     try:
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(
-                lambda: Groq(api_key=st.secrets["GROQ_API_KEY"]).chat.completions.create(
-                    model="llama-3.1-8b-instant",
-                    messages=[{"role": "user", "content": system_prompt}],
-                    temperature=0.3,
-                    max_tokens=500
-                )
-            )
-            result = future.result(timeout=timeout)
-            return result.choices[0].message.content.strip()
-    except concurrent.futures.TimeoutError:
-        return "⏳ AI response timed out. Please try again or contact support."
+        # Use dashscope API
+        dashscope.api_key = st.secrets["QWEN_API_KEY"]
+        response = Generation.call(
+            model='qwen-max',
+            messages=[{'role': 'user', 'content': system_prompt}],
+            result_format='message',
+            temperature=0.3,
+            max_tokens=500
+        )
+        if response.status_code == 200:
+            return response.output.choices[0].message.content.strip()
+        else:
+            return f"⚠️ Qwen API error: {response.message}"
     except Exception as e:
-        return f"AI error: {str(e)}"
+        return f"⚠️ Qwen error: {str(e)}"
 
-# ========== TEXT TO SPEECH ==========
+# ========== TEXT TO SPEECH (unchanged) ==========
 async def text_to_speech(text, voice, output_path):
     comm = edge_tts.Communicate(text, voice)
     await comm.save(output_path)
@@ -399,7 +401,7 @@ def generate_audio(text, lang, voice_type="female"):
     os.unlink(tmp_path)
     return audio_bytes
 
-# ========== EMAIL AUTO‑REPLY FUNCTIONS ==========
+# ========== EMAIL AUTO‑REPLY FUNCTIONS (unchanged except AI call) ==========
 def get_email_body(msg):
     """Extract plain text body from an email message."""
     if msg.is_multipart():
@@ -418,8 +420,8 @@ def get_email_body(msg):
 
 def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", smtp_server="smtp.gmail.com"):
     """
-    Connect to Gmail, fetch unread emails, generate AI replies, and send them.
-    Uses the app password stored in st.secrets["EMAIL_PASSWORD"] (flat key).
+    Connect to Gmail, fetch unread emails, generate AI replies (using Qwen), and send them.
+    Uses the app password stored in st.secrets["EMAIL_PASSWORD"].
     Processes a maximum of 10 emails per click to avoid hanging.
     Log includes the date/time of the original email.
     """
@@ -474,8 +476,8 @@ def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", s
                 else:
                     date_str = "Unknown date"
                 
-                # Get AI reply with timeout
-                reply_text = get_ai_response(body, guidelines, lang, timeout=15)
+                # Get AI reply using Qwen
+                reply_text = get_ai_response_qwen(body, guidelines, lang, timeout=15)
                 
                 smtp = smtplib.SMTP_SSL(smtp_server, 465)
                 smtp.login(gmail_user, gmail_password)
@@ -508,7 +510,7 @@ def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", s
     except Exception as e:
         return log, f"Error: {str(e)}"
 
-# ========== INIT SESSION STATE ==========
+# ========== INIT SESSION STATE (unchanged) ==========
 if "guidelines_text" not in st.session_state:
     st.session_state.guidelines_text = COMPANY_GUIDELINES
 if "lang" not in st.session_state:
@@ -528,9 +530,9 @@ if "email_smtp_server" not in st.session_state:
 if "email_log" not in st.session_state:
     st.session_state.email_log = []
 
-# ========== SIDEBAR ==========
+# ========== SIDEBAR (unchanged except removing Groq reference) ==========
 with st.sidebar:
-    # --- Your picture and name (only place) ---
+    # --- Your picture and name ---
     st.image("https://raw.githubusercontent.com/Deslandes1/ai-customer-service-suite/main/Gesner%20Deslandes.png", width=80)
     st.markdown("### **Gesner Deslandes**")
     st.markdown("## **GlobalInternet.py**")
@@ -578,7 +580,7 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Email Auto‑Reply Section – NO PASSWORD FIELD
+    # Email Auto‑Reply Section
     st.markdown(f"### {texts['email_settings']}")
     email_address = st.text_input(texts["email_address"], value=st.session_state.email_address)
     st.info("🔒 Password stored in secrets (EMAIL_PASSWORD).")
@@ -597,12 +599,12 @@ with st.sidebar:
     st.markdown("---")
     st.caption(texts["footer"])
 
-# ========== MAIN PAGE – TITLE ONLY (no image) ==========
+# ========== MAIN PAGE ==========
 st.markdown(f'<div class="main-title"><h1>{texts["title"]}</h1><p>{texts["subtitle"]}</p></div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
-if "GROQ_API_KEY" not in st.secrets:
+if "QWEN_API_KEY" not in st.secrets:
     st.error(texts["api_key_warning"])
 else:
     st.subheader(texts["customer_chat"])
@@ -617,8 +619,8 @@ else:
         if not st.session_state.guidelines_text:
             st.warning(texts["no_guidelines"])
         else:
-            with st.spinner("AI is thinking..."):
-                response = get_ai_response(customer_question, st.session_state.guidelines_text, st.session_state.lang)
+            with st.spinner("Qwen AI is thinking..."):
+                response = get_ai_response_qwen(customer_question, st.session_state.guidelines_text, st.session_state.lang)
             st.markdown(f"**{texts['ai_response']}**")
             st.markdown(f'<div class="chat-message">{response}</div>', unsafe_allow_html=True)
             
@@ -641,7 +643,7 @@ if process_btn:
     if not st.session_state.guidelines_text:
         st.warning(texts["no_guidelines"])
     elif not st.session_state.email_address:
-        st.warning("Veuillez entrer votre adresse Gmail dans la barre latérale.")
+        st.warning("Please enter your Gmail address in the sidebar.")
     else:
         with st.spinner(texts["email_processing"]):
             log, result = process_emails(
@@ -671,7 +673,7 @@ st.markdown("""
 To connect a real phone number for voice calls or WhatsApp:
 1. Sign up for a [Twilio](https://www.twilio.com) account.
 2. Purchase a phone number with voice and WhatsApp capabilities.
-3. Configure the Twilio webhook URL to point to your deployed app's `/webhook` endpoint (you will need to implement a simple Flask/FastAPI endpoint separately, or use a tool like ngrok for local testing).  
+3. Configure the Twilio webhook URL to point to your deployed app's `/webhook` endpoint (you will need to implement a separate Flask/FastAPI endpoint, or use a tool like ngrok for local testing).  
 4. The AI response logic (using guidelines) will be triggered when a call or WhatsApp message arrives.
 
 **For this demo**, the chat interface above simulates text/email responses. The same AI logic would apply to voice and WhatsApp if Twilio webhook is configured.
