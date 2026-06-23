@@ -15,6 +15,7 @@ import PyPDF2
 import docx
 import concurrent.futures
 from email.utils import parsedate_to_datetime
+from groq import Groq
 
 # ============================================================================
 # EMBEDDED COMPANY GUIDELINES (GlobalInternet.py)
@@ -209,7 +210,7 @@ TEXTS = {
         "sidebar_title": "Company Setup",
         "guidelines_loaded": "✅ Company guidelines are pre‑loaded. AI will use them for all responses.",
         "no_guidelines": "⚠️ Guidelines are pre‑loaded. No need to upload.",
-        "api_key_warning": "⚠️ Missing Grok API key. Add XAI_API_KEY to Streamlit secrets.",
+        "api_key_warning": "⚠️ Missing Groq API key. Add GROQ_API_KEY to Streamlit secrets.",
         "twilio_info": "📞 Phone/WhatsApp Integration (Twilio Required)",
         "twilio_notice": "⚠️ To use voice and WhatsApp features, you must sign up for a Twilio account and purchase a phone number from them. Twilio charges a monthly fee for the number and per‑minute/per‑message usage. Fill in the fields below with the credentials and number Twilio provides you.",
         "twilio_instruction": "To connect your phone number for voice and WhatsApp, configure Twilio webhook to point to: https://your-app.streamlit.app/webhook . This demo includes a test chat interface below.",
@@ -222,7 +223,7 @@ TEXTS = {
         "customer_email": "Customer Email (optional)",
         "customer_question": "Customer Question / Message",
         "send_text": "Send (Simulate Text/Email)",
-        "ai_response": "🤖 AI Response (Grok)",
+        "ai_response": "🤖 AI Response (Groq)",
         "footer": "© 2026 GlobalInternet.py – AI Customer Service Suite",
         "security_badge": "🔐 Secure API connection active",
         "lang": "Language",
@@ -231,7 +232,7 @@ TEXTS = {
         "email_address": "Your Gmail Address",
         "email_imap_server": "IMAP Server (default: imap.gmail.com)",
         "email_smtp_server": "SMTP Server (default: smtp.gmail.com)",
-        "email_process_btn": "📬 Process Inbox & Auto‑Reply (Grok)",
+        "email_process_btn": "📬 Process Inbox & Auto‑Reply (Groq)",
         "email_processing": "Processing unread emails...",
         "email_processed": "✅ Processed {} emails. Replies sent to {}.",
         "email_no_unread": "No unread emails found.",
@@ -246,7 +247,7 @@ TEXTS = {
         "sidebar_title": "Configuration entreprise",
         "guidelines_loaded": "✅ Les politiques de l'entreprise sont pré‑chargées. L'IA les utilisera pour toutes les réponses.",
         "no_guidelines": "⚠️ Les politiques sont pré‑chargées. Pas besoin de télécharger.",
-        "api_key_warning": "⚠️ Clé Grok API manquante. Ajoutez XAI_API_KEY aux secrets Streamlit.",
+        "api_key_warning": "⚠️ Clé Groq API manquante. Ajoutez GROQ_API_KEY aux secrets Streamlit.",
         "twilio_info": "📞 Intégration téléphone/WhatsApp (Twilio requis)",
         "twilio_notice": "⚠️ Pour utiliser les fonctionnalités vocales et WhatsApp, vous devez vous inscrire à un compte Twilio et acheter un numéro de téléphone auprès d'eux. Twilio facture des frais mensuels pour le numéro et des frais à la minute/au message. Remplissez les champs ci‑dessous avec les identifiants et le numéro fournis par Twilio.",
         "twilio_instruction": "Pour connecter votre numéro pour les appels vocaux et WhatsApp, configurez le webhook Twilio vers : https://votre-app.streamlit.app/webhook . Cette démo inclut une interface de chat de test ci‑dessous.",
@@ -259,7 +260,7 @@ TEXTS = {
         "customer_email": "Email du client (optionnel)",
         "customer_question": "Question / message du client",
         "send_text": "Envoyer (simuler texte/email)",
-        "ai_response": "🤖 Réponse IA (Grok)",
+        "ai_response": "🤖 Réponse IA (Groq)",
         "footer": "© 2026 GlobalInternet.py – Suite service client IA",
         "security_badge": "🔐 Connexion API sécurisée active",
         "lang": "Langue",
@@ -268,7 +269,7 @@ TEXTS = {
         "email_address": "Votre adresse Gmail",
         "email_imap_server": "Serveur IMAP (défaut : imap.gmail.com)",
         "email_smtp_server": "Serveur SMTP (défaut : smtp.gmail.com)",
-        "email_process_btn": "📬 Traiter la boîte de réception et répondre (Grok)",
+        "email_process_btn": "📬 Traiter la boîte de réception et répondre (Groq)",
         "email_processing": "Traitement des emails non lus...",
         "email_processed": "✅ {} emails traités. Réponses envoyées à {}.",
         "email_no_unread": "Aucun email non lu trouvé.",
@@ -283,7 +284,7 @@ TEXTS = {
         "sidebar_title": "Configuración de la empresa",
         "guidelines_loaded": "✅ Las políticas de la empresa están pre‑cargadas. La IA las usará para todas las respuestas.",
         "no_guidelines": "⚠️ Las políticas están pre‑cargadas. No es necesario subir archivos.",
-        "api_key_warning": "⚠️ Falta la clave de Grok API. Agregue XAI_API_KEY a los secretos de Streamlit.",
+        "api_key_warning": "⚠️ Falta la clave de Groq API. Agregue GROQ_API_KEY a los secretos de Streamlit.",
         "twilio_info": "📞 Integración telefónica/WhatsApp (requiere Twilio)",
         "twilio_notice": "⚠️ Para usar las funciones de voz y WhatsApp, debe registrarse en Twilio y comprar un número de teléfono. Twilio cobra una tarifa mensual por el número y un costo por minuto/mensaje. Complete los campos a continuación con las credenciales y el número que Twilio le proporcione.",
         "twilio_instruction": "Para conectar su número para llamadas de voz y WhatsApp, configure el webhook de Twilio apuntando a: https://su-app.streamlit.app/webhook . Esta demo incluye una interfaz de chat de prueba a continuación.",
@@ -296,7 +297,7 @@ TEXTS = {
         "customer_email": "Correo electrónico del cliente (opcional)",
         "customer_question": "Pregunta / mensaje del cliente",
         "send_text": "Enviar (simular texto/email)",
-        "ai_response": "🤖 Respuesta IA (Grok)",
+        "ai_response": "🤖 Respuesta IA (Groq)",
         "footer": "© 2026 GlobalInternet.py – Suite servicio al cliente IA",
         "security_badge": "🔐 Conexión API segura activa",
         "lang": "Idioma",
@@ -305,7 +306,7 @@ TEXTS = {
         "email_address": "Su dirección de Gmail",
         "email_imap_server": "Servidor IMAP (por defecto: imap.gmail.com)",
         "email_smtp_server": "Servidor SMTP (por defecto: smtp.gmail.com)",
-        "email_process_btn": "📬 Procesar bandeja de entrada y responder (Grok)",
+        "email_process_btn": "📬 Procesar bandeja de entrada y responder (Groq)",
         "email_processing": "Procesando correos no leídos...",
         "email_processed": "✅ {} correos procesados. Respuestas enviadas a {}.",
         "email_no_unread": "No se encontraron correos no leídos.",
@@ -342,9 +343,9 @@ def extract_text_from_file(uploaded_file):
     else:
         return ""
 
-# ========== GROK AI RESPONSE ==========
-def get_ai_response_grok(question, guidelines, lang, timeout=15):
-    """Get AI response using Grok (xAI) with a timeout."""
+# ========== GROQ AI RESPONSE (with timeout) ==========
+def get_ai_response_groq(question, guidelines, lang, timeout=15):
+    """Get AI response using Groq with a timeout."""
     if not guidelines:
         return "Please upload your company guidelines first. / Veuillez d'abord télécharger vos politiques. / Por favor, cargue primero sus políticas."
     
@@ -362,26 +363,22 @@ Customer question: {question}
 Answer:"""
     
     try:
-        api_key = st.secrets["XAI_API_KEY"]
-        url = "https://api.x.ai/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "model": "grok-2-1212",  # or "grok-3" if available
-            "messages": [{"role": "user", "content": system_prompt}],
-            "temperature": 0.3,
-            "max_tokens": 500
-        }
-        response = requests.post(url, json=payload, headers=headers, timeout=timeout)
-        if response.status_code == 200:
-            data = response.json()
-            return data["choices"][0]["message"]["content"].strip()
-        else:
-            return f"⚠️ Grok API error: {response.text}"
+        client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(
+                lambda: client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[{"role": "user", "content": system_prompt}],
+                    temperature=0.3,
+                    max_tokens=500
+                )
+            )
+            result = future.result(timeout=timeout)
+            return result.choices[0].message.content.strip()
+    except concurrent.futures.TimeoutError:
+        return "⏳ AI response timed out. Please try again or contact support."
     except Exception as e:
-        return f"⚠️ Grok error: {str(e)}"
+        return f"AI error: {str(e)}"
 
 # ========== TEXT TO SPEECH ==========
 async def text_to_speech(text, voice, output_path):
@@ -423,7 +420,7 @@ def get_email_body(msg):
 
 def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", smtp_server="smtp.gmail.com"):
     """
-    Connect to Gmail, fetch unread emails, generate AI replies (using Grok), and send them.
+    Connect to Gmail, fetch unread emails, generate AI replies (using Groq), and send them.
     Uses the app password stored in st.secrets["EMAIL_PASSWORD"].
     Processes a maximum of 10 emails per click to avoid hanging.
     """
@@ -477,7 +474,7 @@ def process_emails(gmail_user, guidelines, lang, imap_server="imap.gmail.com", s
                 else:
                     date_str = "Unknown date"
                 
-                reply_text = get_ai_response_grok(body, guidelines, lang, timeout=15)
+                reply_text = get_ai_response_groq(body, guidelines, lang, timeout=15)
                 
                 smtp = smtplib.SMTP_SSL(smtp_server, 465)
                 smtp.login(gmail_user, gmail_password)
@@ -601,7 +598,7 @@ st.markdown(f'<div class="main-title"><h1>{texts["title"]}</h1><p>{texts["subtit
 
 st.markdown("---")
 
-if "XAI_API_KEY" not in st.secrets:
+if "GROQ_API_KEY" not in st.secrets:
     st.error(texts["api_key_warning"])
 else:
     st.subheader(texts["customer_chat"])
@@ -616,8 +613,8 @@ else:
         if not st.session_state.guidelines_text:
             st.warning(texts["no_guidelines"])
         else:
-            with st.spinner("Grok AI is thinking..."):
-                response = get_ai_response_grok(customer_question, st.session_state.guidelines_text, st.session_state.lang)
+            with st.spinner("Groq AI is thinking..."):
+                response = get_ai_response_groq(customer_question, st.session_state.guidelines_text, st.session_state.lang)
             st.markdown(f"**{texts['ai_response']}**")
             st.markdown(f'<div class="chat-message">{response}</div>', unsafe_allow_html=True)
             
